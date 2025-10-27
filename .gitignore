@@ -1,0 +1,45 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env/
+
+# Environment and credentials
+*.env
+.env
+
+# IDE / editor settings
+.vscode/
+.idea/
+*.swp
+
+# Byte-compiled / optimized / DLL files
+*.pyc
+*.pyo
+*.pyd
+
+# Log files
+*.log
+
+# macOS / Linux / Windows system files
+.DS_Store
+Thumbs.db
+
+# Flask cache or instance
+instance/
+*.db
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# Build / distribution
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Temporary files
+tmp/

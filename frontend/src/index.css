@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Teal-focused dark theme */
+    --background: 200 40% 6%;
+    --foreground: 210 100% 98%;
+
+    --card: 200 35% 10%;
+    --card-foreground: 210 100% 98%;
+
+    --popover: 200 38% 8%;
+    --popover-foreground: 210 100% 98%;
+
+    /* Teal primary */
+    --primary: 174 73% 45%;
+    --primary-foreground: 186 100% 97%;
+    --primary-glow: 174 90% 58%;
+
+    /* Cyan secondary */
+    --secondary: 188 82% 46%;
+    --secondary-foreground: 186 100% 97%;
+    --secondary-glow: 188 90% 60%;
+
+    /* Emerald accent */
+    --accent: 160 70% 42%;
+    --accent-foreground: 200 40% 6%;
+    --accent-glow: 160 80% 55%;
+
+    --success: 160 84% 39%;
+    --success-foreground: 200 40% 6%;
+
+    --muted: 200 22% 24%;
+    --muted-foreground: 200 30% 70%;
+
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 210 100% 98%;
+
+    --border: 200 25% 18%;
+    --input: 200 25% 15%;
+    --ring: 174 73% 45%;
+
+    --radius: 0.75rem;
+
+    /* Teal gradients */
+    --gradient-ai: linear-gradient(135deg, hsl(174 73% 45%), hsl(188 82% 46%), hsl(160 70% 42%));
+    --gradient-hero: linear-gradient(180deg, hsl(200 40% 6%), hsl(200 38% 10%), hsl(188 35% 14%));
+    --gradient-card: linear-gradient(135deg, hsl(200 35% 10% / 0.8), hsl(200 40% 16% / 0.6));
+    --gradient-button: linear-gradient(135deg, hsl(174 73% 45%), hsl(188 82% 46%));
+    --gradient-accent: linear-gradient(135deg, hsl(160 70% 42%), hsl(174 73% 45%));
+    
+    /* Glassmorphism */
+    --glass-bg: hsl(200 35% 10% / 0.4);
+    --glass-border: hsl(186 100% 97% / 0.1);
+    
+    /* Shadows & Glows */
+    --shadow-glow: 0 0 40px hsl(174 73% 45% / 0.3);
+    --shadow-glow-accent: 0 0 40px hsl(160 70% 42% / 0.3);
+    --shadow-card: 0 8px 32px hsl(200 40% 6% / 0.5);
+    
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-glass-bg backdrop-blur-xl border border-glass-border;
+  }
+  
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent;
+  }
+}
