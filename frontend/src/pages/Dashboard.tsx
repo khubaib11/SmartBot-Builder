@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ChatbotCard from "@/components/ChatbotCard";
@@ -19,69 +19,39 @@ interface Chatbot {
 }
 
 const Dashboard = () => {
-  const [chatbots, setChatbots] = useState<Chatbot[]>([
-    {
-      id: "1",
-      name: "Customer Support Bot",
-      description: "Handles customer inquiries and support tickets",
-      createdAt: "2025-01-15",
-      location: "United States"
-    },
-    {
-      id: "2",
-      name: "Sales Assistant",
-      description: "Helps customers find products and complete purchases",
-      createdAt: "2025-01-10",
-      location: "United Kingdom"
-    },
-    {
-      id: "3",
-      name: "Tech Helper",
-      description: "Provides technical support and troubleshooting",
-      createdAt: "2025-01-12",
-      location: "Germany"
-    },
-    {
-      id: "4",
-      name: "Healthcare Assistant",
-      description: "Answers health-related questions and schedules appointments",
-      createdAt: "2025-01-08",
-      location: "Canada"
-    },
-    {
-      id: "5",
-      name: "Language Tutor",
-      description: "Helps users learn new languages through conversation",
-      createdAt: "2025-01-05",
-      location: "Japan"
-    },
-    {
-      id: "6",
-      name: "Finance Advisor",
-      description: "Provides financial advice and investment recommendations",
-      createdAt: "2025-01-03",
-      location: "Singapore"
-    }
-  ]);
-
+  const [chatbots, setChatbots] = useState<Chatbot[]>([]);
   const [selectedChatbot, setSelectedChatbot] = useState<string | null>(null);
+  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleCreateChatbot = (name: string, description: string) => {
-    const locations = ["United States", "United Kingdom", "Germany", "Canada", "Japan", "Singapore", "France", "Australia"];
-    const randomLocation = locations[Math.floor(Math.random() * locations.length)];
-    
-    const newChatbot: Chatbot = {
-      id: Date.now().toString(),
-      name,
-      description,
-      createdAt: new Date().toISOString().split('T')[0],
-      location: randomLocation
-    };
-    setChatbots([newChatbot, ...chatbots]);
+  useEffect(() => {
+    fetchChatbots();
+  }, []);
+
+  const fetchChatbots = async () => {
+    try {
+      const response = await fetch("http://localhost:5050/api/organizations");
+      const data = await response.json();
+
+      const formattedBots = data.map((org: any) => ({
+        id: org.id,
+        name: org.name,
+        description: org.description,
+        createdAt: new Date(org.created_at).toISOString().split('T')[0],
+        location: org.location || "Global"
+      }));
+
+      setChatbots(formattedBots);
+    } catch (error) {
+      console.error("Error fetching chatbots:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleChatWithBot = (botName: string) => {
+  const handleChatWithBot = (botId: string, botName: string) => {
     setSelectedChatbot(botName);
+    setSelectedOrgId(botId);
   };
 
   return (
@@ -136,7 +106,11 @@ const Dashboard = () => {
             Explore AI assistants created by users globally. Connect with bots designed for various industries and purposes, from customer support to education and beyond.
           </p>
           
-          {chatbots.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-16">
+              <p className="text-muted-foreground text-lg">Loading chatbots...</p>
+            </div>
+          ) : chatbots.length === 0 ? (
             <div className="text-center py-16 border-2 border-dashed border-border/50 rounded-lg bg-gradient-card backdrop-blur-sm">
               <Globe className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
               <p className="text-muted-foreground text-lg">
@@ -152,7 +126,7 @@ const Dashboard = () => {
                   description={bot.description}
                   createdAt={bot.createdAt}
                   location={bot.location}
-                  onChat={() => handleChatWithBot(bot.name)}
+                  onChat={() => handleChatWithBot(bot.id, bot.name)}
                 />
               ))}
             </div>
@@ -160,7 +134,7 @@ const Dashboard = () => {
         </section>
 
         {/* Chat Interface Section (only visible after selecting a bot) */}
-        {selectedChatbot && (
+        {selectedChatbot && selectedOrgId && (
           <section className="animate-slide-up mt-16" style={{ animationDelay: "0.3s" }}>
             <div className="flex items-center gap-3 mb-6">
               <MessageSquare className="h-6 w-6 text-accent" />
@@ -169,7 +143,7 @@ const Dashboard = () => {
             <p className="text-muted-foreground mb-6">
               You're chatting with {selectedChatbot}. Ask anything related to its knowledge and capabilities.
             </p>
-            <ChatInterface chatbotName={selectedChatbot} />
+            <ChatInterface chatbotName={selectedChatbot} organizationId={selectedOrgId} />
           </section>
         )}
       </main>

@@ -87,54 +87,80 @@ const CreateBot = () => {
     setServices((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Common validation
     if (!botName.trim() || !botDescription.trim()) {
       toast.error("Please provide Chatbot Name and Description");
       return;
     }
 
-    if (mode === "automatic") {
-      if (!pdfFile) {
-        toast.error("Please upload a PDF file for Automatic mode");
-        return;
-      }
-      // Submit payload for automatic
-      const payload = {
-        mode,
-        chatbot: { name: botName.trim(), description: botDescription.trim() },
-        pdfFileName: pdfFile.name,
-      };
-      console.log("Create Chatbot (automatic):", payload);
-      toast.success("Chatbot created (automatic)", { description: `Using ${pdfFile.name}` });
-    } else {
-      // Manual validation: require organization name, and at least one product or service
-      if (!orgName.trim()) {
-        toast.error("Organization name is required in Manual mode");
-        return;
-      }
-      if (products.length === 0 && services.length === 0) {
-        toast.error("Please add at least one product or one service");
-        return;
+    try {
+      const formData = new FormData();
+      formData.append("mode", mode);
+      formData.append("botName", botName.trim());
+      formData.append("botDescription", botDescription.trim());
+
+      if (mode === "automatic") {
+        if (!pdfFile) {
+          toast.error("Please upload a PDF file for Automatic mode");
+          return;
+        }
+        formData.append("pdfFile", pdfFile);
+      } else {
+        if (!orgName.trim()) {
+          toast.error("Organization name is required in Manual mode");
+          return;
+        }
+        if (products.length === 0 && services.length === 0) {
+          toast.error("Please add at least one product or one service");
+          return;
+        }
+
+        formData.append("orgName", orgName.trim());
+        formData.append("orgWebsite", orgWebsite.trim());
+        formData.append("orgIndustry", orgIndustry.trim());
+        formData.append("orgAbout", orgAbout.trim());
+        formData.append("employees", JSON.stringify(employees));
+        formData.append("products", JSON.stringify(products));
+        formData.append("services", JSON.stringify(services));
       }
 
-      const payload = {
-        mode,
-        chatbot: { name: botName.trim(), description: botDescription.trim() },
-        organization: {
-          name: orgName.trim(),
-          website: orgWebsite.trim(),
-          industry: orgIndustry.trim(),
-          about: orgAbout.trim(),
-          employees,
-          products,
-          services,
-        },
-      };
-      console.log("Create Chatbot (manual):", payload);
-      toast.success("Chatbot created (manual)");
+      const response = await fetch("http://localhost:5050/api/create-bot", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to create chatbot");
+      }
+
+      toast.success("Chatbot created successfully!", {
+        description: `${result.name} is ready to chat`,
+      });
+
+      setBotName("");
+      setBotDescription("");
+      setPdfFile(null);
+      setOrgName("");
+      setOrgWebsite("");
+      setOrgIndustry("");
+      setOrgAbout("");
+      setEmployees([]);
+      setProducts([]);
+      setServices([]);
+
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1500);
+
+    } catch (error: any) {
+      console.error("Error creating chatbot:", error);
+      toast.error("Failed to create chatbot", {
+        description: error.message,
+      });
     }
   };
 

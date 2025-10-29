@@ -15,9 +15,10 @@ interface Message {
 
 interface ChatInterfaceProps {
   chatbotName?: string;
+  organizationId?: string;
 }
 
-const ChatInterface = ({ chatbotName }: ChatInterfaceProps) => {
+const ChatInterface = ({ chatbotName, organizationId }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -27,6 +28,7 @@ const ChatInterface = ({ chatbotName }: ChatInterfaceProps) => {
     }
   ]);
   const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,10 +37,10 @@ const ChatInterface = ({ chatbotName }: ChatInterfaceProps) => {
     }
   }, [messages]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!inputValue.trim()) return;
+
+    if (!inputValue.trim() || !organizationId || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -47,19 +49,45 @@ const ChatInterface = ({ chatbotName }: ChatInterfaceProps) => {
       timestamp: new Date().toLocaleTimeString()
     };
 
-    setMessages([...messages, userMessage]);
+    setMessages(prev => [...prev, userMessage]);
     setInputValue("");
+    setIsLoading(true);
 
-    // Simulate bot response
-    setTimeout(() => {
+    try {
+      const response = await fetch(`http://localhost:5050/api/query/${organizationId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query: inputValue }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to get response");
+      }
+
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "bot",
-        content: "Thank you for your message! I'm processing your request...",
+        content: result.response,
         timestamp: new Date().toLocaleTimeString()
       };
+
       setMessages(prev => [...prev, botMessage]);
-    }, 1000);
+    } catch (error: any) {
+      console.error("Error querying bot:", error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "bot",
+        content: `Sorry, I encountered an error: ${error.message}`,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -132,9 +160,10 @@ const ChatInterface = ({ chatbotName }: ChatInterfaceProps) => {
               onChange={(e) => setInputValue(e.target.value)}
               className="flex-1 bg-input/50 border-border/50 focus:border-primary transition-all"
             />
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               size="icon"
+              disabled={isLoading}
               className="bg-gradient-button hover:shadow-glow transition-all duration-300"
             >
               <Send className="h-4 w-4" />
