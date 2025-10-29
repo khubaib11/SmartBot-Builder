@@ -1,0 +1,10 @@
+flask
+flask-cors
+pymongo
+python-dotenv
+llama-index
+llama-index-llms-groq
+llama-index-embeddings-huggingface
+PyMuPDF
+sentence-transformers
+torch
